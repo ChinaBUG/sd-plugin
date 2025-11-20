@@ -1,8 +1,8 @@
 {
     "name": "sdev/sd-plugin",
     "type": "yii2-extension",
-    "description": "Yii2 ActiveForm extension with hint functionality",
-    "keywords": ["ChinaBUG","sdev","yii2", "activeform", "hint", "bootstrap"],
+    "description": "Yii2 ActiveForm extension",
+    "keywords": ["ChinaBUG","sdev","yii2", "activeform", "bootstrap","hint", "placeholder"],
     "license": "MIT",
     "authors": [
         {
