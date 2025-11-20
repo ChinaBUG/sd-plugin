@@ -4,35 +4,29 @@ namespace sdplugin;
 
 use yii\helpers\Html;
 use yii\helpers\Inflector;
+use sdplugin\assets\SdPluginAsset;
 
 /**
  * Extended ActiveField with hint and placeholder functionality
  */
 class ActiveField extends \yii\bootstrap\ActiveField
 {
-    /**
-     * @var string|array the hint content
-     */
     public $hint;
-    
-    /**
-     * @var array the options for the hint tag
-     */
     public $hintOptions = [];
+    public $hintPosition = 'input-after';
+    public $hintMode = 'icon';
+    public $showIcon = true;
     
     /**
-     * @var string the position of hint relative to input ('before', 'after')
+     * {@inheritdoc}
      */
-    public $hintPosition = 'after';
+    public function init()
+    {
+        parent::init();
+        // 自动注册资源文件
+        SdPluginAsset::register($this->form->getView());
+    }
     
-    /**
-     * Sets the hint content and options
-     * 
-     * @param string|array $content the hint content. If an array, it will be treated as the options for the hint tag,
-     * and the actual hint content will be determined by the 'content' key.
-     * @param array $options the options for the hint tag
-     * @return $this
-     */
     public function hint($content, $options = [])
     {
         if (is_array($content)) {
@@ -47,31 +41,30 @@ class ActiveField extends \yii\bootstrap\ActiveField
         return $this;
     }
     
-    /**
-     * Sets the hint position
-     * 
-     * @param string $position the position ('before', 'after')
-     * @return $this
-     */
     public function hintPosition($position)
     {
         $this->hintPosition = $position;
         return $this;
     }
     
-    /**
-     * Sets the placeholder text
-     * 
-     * @param string|null $text the placeholder text. If null, will generate from model attribute label
-     * @return $this
-     */
+    public function hintMode($mode)
+    {
+        $this->hintMode = $mode;
+        return $this;
+    }
+    
+    public function showIcon($show)
+    {
+        $this->showIcon = $show;
+        return $this;
+    }
+    
     public function placeholder($text = null)
     {
         if ($text === null) {
             $text = $this->generatePlaceholder();
         }
         
-        // 直接设置到 inputOptions 中
         if (!isset($this->inputOptions)) {
             $this->inputOptions = [];
         }
@@ -81,29 +74,19 @@ class ActiveField extends \yii\bootstrap\ActiveField
         return $this;
     }
     
-    /**
-     * Generates placeholder text from model attribute
-     * 
-     * @return string the generated placeholder text
-     */
     protected function generatePlaceholder()
     {
         $model = $this->model;
         $attribute = $this->attribute;
         
-        // 首先尝试从模型的 attributeLabels() 获取标签
         $labels = $model->attributeLabels();
         if (isset($labels[$attribute])) {
             return "请输入" . $labels[$attribute];
         }
         
-        // 如果没有定义标签，从属性名生成
         return "请输入" . Inflector::camel2words($attribute, true);
     }
     
-    /**
-     * {@inheritdoc}
-     */
     public function render($content = null)
     {
         if ($content === null) {
@@ -113,9 +96,6 @@ class ActiveField extends \yii\bootstrap\ActiveField
         return parent::render($content);
     }
     
-    /**
-     * Adds hint to the field template
-     */
     protected function addHintToTemplate()
     {
         if ($this->hint === null) {
@@ -124,31 +104,68 @@ class ActiveField extends \yii\bootstrap\ActiveField
         
         $hintContent = $this->renderHint();
         
-        if ($this->hintPosition === 'before') {
-            $this->template = str_replace('{input}', $hintContent . '{input}', $this->template);
-        } else {
-            $this->template = str_replace('{input}', '{input}' . $hintContent, $this->template);
+        switch ($this->hintPosition) {
+            case 'label-after':
+                // 修改这里：将 hint 添加到 label 模板中
+                if (isset($this->parts['{label}'])) {
+                    $this->parts['{label}'] .= $hintContent;
+                }
+                break;
+            case 'input-before':
+                $this->template = str_replace('{input}', $hintContent . '{input}', $this->template);
+                break;
+            case 'input-after':
+            default:
+                $this->template = str_replace('{input}', '{input}' . $hintContent, $this->template);
+                break;
         }
     }
     
-    /**
-     * Renders the hint content
-     * 
-     * @return string the rendered hint
-     */
     protected function renderHint()
     {
+        if ($this->hintMode === 'inline') {
+            return $this->renderInlineHint();
+        }
+        
+        return $this->renderIconHint();
+    }
+    
+    protected function renderInlineHint()
+    {
         $options = $this->hintOptions;
-        $tag = isset($options['tag']) ? $options['tag'] : 'div';
+        $tag = isset($options['tag']) ? $options['tag'] : 'span';
         unset($options['tag']);
         
-        Html::addCssClass($options, isset($options['class']) ? $options['class'] : 'help-block');
+        Html::addCssClass($options, 'hint-inline');
         
         $content = $this->hint;
         if (is_array($content)) {
             $content = isset($content['content']) ? $content['content'] : '';
         }
         
+        if ($this->showIcon) {
+            $content = '<i class="hint-icon">!</i> ' . $content;
+        }
+        
         return Html::tag($tag, $content, $options);
+    }
+    
+    protected function renderIconHint()
+    {
+        $options = $this->hintOptions;
+        $tag = isset($options['tag']) ? $options['tag'] : 'span';
+        unset($options['tag']);
+        
+        Html::addCssClass($options, 'hint-icon-wrapper');
+        
+        $content = $this->hint;
+        if (is_array($content)) {
+            $content = isset($content['content']) ? $content['content'] : '';
+        }
+        
+        $iconHtml = '<i class="hint-icon">!</i>';
+        $tooltipHtml = '<span class="hint-tooltip">' . $content . '</span>';
+        
+        return Html::tag($tag, $iconHtml . $tooltipHtml, $options);
     }
 }

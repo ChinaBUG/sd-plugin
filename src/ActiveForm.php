@@ -12,7 +12,6 @@ class ActiveForm extends \yii\bootstrap\ActiveForm
      */
     public function field($model, $attribute, $options = [])
     {
-        // 确保使用我们的 ActiveField
         if (!isset($options['class'])) {
             $options['class'] = ActiveField::className();
         }
