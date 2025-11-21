@@ -13,9 +13,10 @@ class ActiveField extends \yii\bootstrap\ActiveField
 {
     public $hint;
     public $hintOptions = [];
-    public $hintPosition = 'input-after';
-    public $hintMode = 'icon';
+    public $hintPosition = 'input-before'; // 改为 input-before
+    public $hintMode = 'inline'; // 改为 inline
     public $showIcon = true;
+    private $_placeholder;
     
     /**
      * {@inheritdoc}
@@ -23,7 +24,6 @@ class ActiveField extends \yii\bootstrap\ActiveField
     public function init()
     {
         parent::init();
-        // 自动注册资源文件
         SdPluginAsset::register($this->form->getView());
     }
     
@@ -65,11 +65,7 @@ class ActiveField extends \yii\bootstrap\ActiveField
             $text = $this->generatePlaceholder();
         }
         
-        if (!isset($this->inputOptions)) {
-            $this->inputOptions = [];
-        }
-        
-        $this->inputOptions['placeholder'] = $text;
+        $this->_placeholder = $text;
         
         return $this;
     }
@@ -85,6 +81,54 @@ class ActiveField extends \yii\bootstrap\ActiveField
         }
         
         return "请输入" . Inflector::camel2words($attribute, true);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function textInput($options = [])
+    {
+        if ($this->_placeholder !== null) {
+            $options['placeholder'] = $this->_placeholder;
+        }
+        
+        return parent::textInput($options);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function passwordInput($options = [])
+    {
+        if ($this->_placeholder !== null) {
+            $options['placeholder'] = $this->_placeholder;
+        }
+        
+        return parent::passwordInput($options);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function textarea($options = [])
+    {
+        if ($this->_placeholder !== null) {
+            $options['placeholder'] = $this->_placeholder;
+        }
+        
+        return parent::textarea($options);
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function input($type, $options = [])
+    {
+        if ($this->_placeholder !== null) {
+            $options['placeholder'] = $this->_placeholder;
+        }
+        
+        return parent::input($type, $options);
     }
     
     public function render($content = null)
@@ -106,10 +150,7 @@ class ActiveField extends \yii\bootstrap\ActiveField
         
         switch ($this->hintPosition) {
             case 'label-after':
-                // 修改这里：将 hint 添加到 label 模板中
-                if (isset($this->parts['{label}'])) {
-                    $this->parts['{label}'] .= $hintContent;
-                }
+                $this->template = preg_replace('/(\{label\})/', '$1' . $hintContent, $this->template);
                 break;
             case 'input-before':
                 $this->template = str_replace('{input}', $hintContent . '{input}', $this->template);

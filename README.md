@@ -13,32 +13,79 @@ use sdplugin\ActiveForm;
 
 
 使用示例
+
+
+use sdplugin\ActiveForm;
+
+$form = ActiveForm::begin();
+
+// 现在默认就是 input-before 和 inline 模式
+echo $form->field($model, 'username')
+    ->textInput()
+    ->hint('用户名提示') // 默认显示在输入框前，单行模式
+    ->placeholder(); // 自动生成
+
+// 可以覆盖默认值
+echo $form->field($model, 'email')
+    ->textInput()
+    ->hint('邮箱提示')
+    ->hintMode('icon') // 覆盖为图标模式
+    ->hintPosition('label-after'); // 覆盖为标签后
+
+// 另一个例子
+echo $form->field($model, 'phone')
+    ->textInput()
+    ->hint('手机号提示'); // 使用默认的 input-before 和 inline
+
+ActiveForm::end();
+
 php
 use sdplugin\ActiveForm;
 
 $form = ActiveForm::begin();
 
-// label-after：hint 显示在 label 标签内部
+// 测试 label-after
 echo $form->field($model, 'username')
     ->textInput()
-    ->hint('用户名长度为3-20个字符')
-    ->hintPosition('label-after')
-    ->hintMode('icon');
+    ->hint('用户名提示')
+    ->hintPosition('label-after'); // 现在应该正常工作了
 
-// 单行模式在 label 后
+// 测试 placeholder 优先级
+echo $form->field($model, 'email', [
+    'inputOptions' => [
+        'placeholder' => '这个会被覆盖'
+    ]
+])
+->textInput()
+->placeholder('这个会生效'); // 现在优先级最高
+
+ActiveForm::end();
+
+
+php
+use sdplugin\ActiveForm;
+
+$form = ActiveForm::begin();
+
+// 默认就是 label-after 和 icon 模式
+echo $form->field($model, 'username')
+    ->textInput()
+    ->hint('用户名提示')
+    ->placeholder(); // 自动生成
+
+// 测试 placeholder 优先级
 echo $form->field($model, 'email')
-    ->textInput()
-    ->hint('必填字段')
-    ->hintPosition('label-after')
-    ->hintMode('inline');
+    ->textInput(['placeholder' => '这个会被覆盖'])
+    ->placeholder('这个会生效'); // 现在这个优先级最高
 
-// 不显示图标
-echo $form->field($model, 'phone')
-    ->textInput()
-    ->hint('选填')
-    ->hintPosition('label-after')
-    ->hintMode('inline')
-    ->showIcon(false);
+// 其他输入类型
+echo $form->field($model, 'password')
+    ->passwordInput(['placeholder' => '会被覆盖'])
+    ->placeholder('密码 placeholder');
+
+echo $form->field($model, 'description')
+    ->textarea(['placeholder' => '会被覆盖'])
+    ->placeholder('描述 placeholder');
 
 ActiveForm::end();
 
