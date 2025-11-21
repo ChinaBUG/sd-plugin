@@ -15,6 +15,61 @@ use sdplugin\ActiveForm;
 使用示例
 
 
+
+class User extends \yii\db\ActiveRecord
+{
+    public function attributeLabels()
+    {
+        return [
+            'username' => '用户名',
+            'email' => '电子邮箱',
+            'phone' => '手机号码',
+        ];
+    }
+    
+    public function attributeHints()
+    {
+        return [
+            'username' => '用户名长度为3-20个字符，只能包含字母、数字和下划线',
+            'email' => '请填写有效的邮箱地址，用于接收验证邮件',
+            'phone' => '请输入有效的手机号码，用于紧急联系',
+        ];
+    }
+}
+
+
+use sdplugin\ActiveForm;
+
+$form = ActiveForm::begin();
+
+// 1. 使用 attributeHints 中的提示
+echo $form->field($model, 'username')
+    ->textInput()
+    ->hint() // 自动获取：用户名长度为3-20个字符...
+    ->placeholder();
+
+// 2. 使用 attributeLabels 生成提示
+echo $form->field($model, 'birth_date')
+    ->textInput()
+    ->hint() // 自动生成：出生日期的说明
+    ->placeholder();
+
+// 3. 使用字段名生成提示
+echo $form->field($model, 'home_address')
+    ->textInput()
+    ->hint() // 自动生成：Home Address字段的说明
+    ->placeholder();
+
+// 4. 自定义提示（覆盖自动生成）
+echo $form->field($model, 'email')
+    ->textInput()
+    ->hint('请填写真实邮箱') // 自定义提示
+    ->placeholder();
+
+ActiveForm::end();
+
+
+
 use sdplugin\ActiveForm;
 
 $form = ActiveForm::begin();

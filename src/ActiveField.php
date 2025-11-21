@@ -13,8 +13,8 @@ class ActiveField extends \yii\bootstrap\ActiveField
 {
     public $hint;
     public $hintOptions = [];
-    public $hintPosition = 'input-before'; // 改为 input-before
-    public $hintMode = 'inline'; // 改为 inline
+    public $hintPosition = 'input-before';
+    public $hintMode = 'inline';
     public $showIcon = true;
     private $_placeholder;
     
@@ -27,8 +27,13 @@ class ActiveField extends \yii\bootstrap\ActiveField
         SdPluginAsset::register($this->form->getView());
     }
     
-    public function hint($content, $options = [])
+    public function hint($content = null, $options = [])
     {
+        if ($content === null) {
+            // 自动生成提示内容
+            $content = $this->generateHint();
+        }
+        
         if (is_array($content)) {
             $options = $content;
             $content = isset($options['content']) ? $options['content'] : null;
@@ -39,6 +44,32 @@ class ActiveField extends \yii\bootstrap\ActiveField
         $this->hintOptions = array_merge($this->hintOptions, $options);
         
         return $this;
+    }
+    
+    /**
+     * 自动生成提示内容
+     */
+    protected function generateHint()
+    {
+        $model = $this->model;
+        $attribute = $this->attribute;
+        
+        // 1. 首先尝试从 attributeHints 获取
+        if (method_exists($model, 'attributeHints')) {
+            $hints = $model->attributeHints();
+            if (isset($hints[$attribute])) {
+                return $hints[$attribute];
+            }
+        }
+        
+        // 2. 然后尝试从 attributeLabels 获取
+        $labels = $model->attributeLabels();
+        if (isset($labels[$attribute])) {
+            return $labels[$attribute] . '的说明';
+        }
+        
+        // 3. 最后使用字段名
+        return Inflector::camel2words($attribute) . '字段的说明';
     }
     
     public function hintPosition($position)
